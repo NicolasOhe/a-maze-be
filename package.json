@@ -1,0 +1,21 @@
+{
+  "name": "a-maze-be",
+  "version": "1.0.0",
+  "description": "A node backend to amaze. Coding challenge for mvpmatch.",
+  "main": "./dist/main.js",
+  "scripts": {
+    "dev": "npx nodemon ./src/main.ts",
+    "build": "tsc --build",
+    "start": "node ./dist/main.js"
+  },
+  "keywords": [
+    "node",
+    "maze"
+  ],
+  "author": "Nicolas Cauet",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1"
+  }
+}
