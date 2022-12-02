@@ -2,6 +2,7 @@ import express, { Response, Request } from "express"
 import { body } from "express-validator"
 
 import { validateRequest } from "@/middlewares/validate-request"
+import { prisma } from "@/services/prisma"
 
 const router = express.Router()
 
@@ -19,6 +20,12 @@ router.post(
   ],
   validateRequest,
   async (req: Request, res: Response) => {
+    const user = await prisma.user.create({
+      data: {
+        username: req.body.username,
+        password: req.body.password
+      }
+    })
     res.status(201).send(req.body)
   }
 )
