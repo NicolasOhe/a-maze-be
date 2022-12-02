@@ -99,4 +99,37 @@ router.post(
   }
 )
 
+router.get(
+  "/maze",
+  currentUser,
+  requireAuth,
+
+  async (req: Request, res: Response) => {
+    const mazesInDB = await prisma.maze.findMany({
+      select: {
+        entrance: true,
+        gridSize: true,
+        walls: true
+      },
+      where: { ownerId: req.currentUser!.id }
+    })
+
+    interface ExternalMaze {
+      entrance: string
+      gridSize: string
+      walls: string[]
+    }
+
+    let mazes: ExternalMaze[] = []
+
+    if (mazesInDB) {
+      mazes = mazesInDB.map((maze) => {
+        return { ...maze, walls: maze.walls.split(",") }
+      })
+    }
+
+    res.status(201).send(mazes)
+  }
+)
+
 export { router as newMazeRouter }
