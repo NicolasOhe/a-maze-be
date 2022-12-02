@@ -8,6 +8,7 @@ import { signupRouter } from "@/controllers/signup"
 import { NotFoundError } from "@/errors/not-found-error"
 import { errorHandler } from "@/middlewares/error-handler"
 import { loginRouter } from "@/controllers/signin"
+import { newMazeRouter } from "./controllers/maze"
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ app.use(cookieSession({ secure: false, signed: false }))
 // Routes
 app.use(signupRouter)
 app.use(loginRouter)
+app.use(newMazeRouter)
 
 // Errors
 app.all("*", () => {

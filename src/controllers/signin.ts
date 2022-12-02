@@ -6,6 +6,7 @@ import { validateRequest } from "@/middlewares/validate-request"
 import { prisma } from "@/services/prisma"
 import { BadRequestError } from "@/errors/bad-request-error"
 import { Password } from "@/lib/password"
+import { UserPayload } from "@/middlewares/current-user"
 
 const router = express.Router()
 
@@ -39,14 +40,14 @@ router.post(
       throw new BadRequestError("Invalid credentials.")
     }
 
-    const accessToken = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET!,
-      { expiresIn: "10m" }
-    )
+    const payload: UserPayload = { id: user.id, username: user.username }
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+      expiresIn: "10m"
+    })
     req.session = { accessToken }
 
-    res.status(201).send()
+    res.status(201).send(req.session)
   }
 )
 

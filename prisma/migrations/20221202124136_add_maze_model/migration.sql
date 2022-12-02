@@ -1,0 +1,8 @@
+-- CreateTable
+CREATE TABLE "Maze" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "ownerId" INTEGER NOT NULL,
+    "walls" TEXT NOT NULL,
+    "entrance" TEXT NOT NULL,
+    CONSTRAINT "Maze_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
