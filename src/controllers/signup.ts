@@ -3,6 +3,7 @@ import { body } from "express-validator"
 
 import { validateRequest } from "@/middlewares/validate-request"
 import { prisma } from "@/services/prisma"
+import { BadRequestError } from "@/errors/bad-request-error"
 
 const router = express.Router()
 
@@ -20,10 +21,22 @@ router.post(
   ],
   validateRequest,
   async (req: Request, res: Response) => {
+    const { username, password } = req.body
+
+    const alreadyExists = Boolean(
+      await prisma.user.findUnique({
+        where: { username }
+      })
+    )
+
+    if (alreadyExists) {
+      throw new BadRequestError("User name already in use.")
+    }
+
     const user = await prisma.user.create({
       data: {
-        username: req.body.username,
-        password: req.body.password
+        username,
+        password
       }
     })
     res.status(201).send(req.body)
