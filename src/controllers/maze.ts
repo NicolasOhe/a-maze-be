@@ -7,6 +7,9 @@ import { Maze } from "@prisma/client"
 import { currentUser } from "@/middlewares/current-user"
 import { requireAuth } from "@/middlewares/require-auth"
 import { validateRequest } from "@/middlewares/validate-request"
+import { BadRequestError } from "@/errors/bad-request-error"
+import { NotFoundError } from "@/errors/not-found-error"
+import { NotAuthorizedError } from "@/errors/not-authorized-error"
 
 const router = express.Router()
 
@@ -103,13 +106,13 @@ router.get(
   "/maze",
   currentUser,
   requireAuth,
-
   async (req: Request, res: Response) => {
     const mazesInDB = await prisma.maze.findMany({
       select: {
         entrance: true,
         gridSize: true,
-        walls: true
+        walls: true,
+        id: true
       },
       where: { ownerId: req.currentUser!.id }
     })
@@ -129,6 +132,42 @@ router.get(
     }
 
     res.status(201).send(mazes)
+  }
+)
+
+router.get(
+  "/maze/:id/solution",
+  currentUser,
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const mazeId = Number(req.params.id)
+    if (Number.isNaN(mazeId)) throw new BadRequestError("Invalid maze id")
+
+    const steps = req.query.steps
+    const stepsOptions = ["min", "max"]
+
+    if (typeof steps !== "string" || !stepsOptions.includes(steps))
+      throw new BadRequestError(
+        `Steps query parameter must be provided with one of the following values: ${stepsOptions.join(
+          ", "
+        )}`
+      )
+
+    const mazeInDB = await prisma.maze.findUnique({
+      select: {
+        entrance: true,
+        gridSize: true,
+        walls: true,
+        ownerId: true
+      },
+      where: { id: mazeId }
+    })
+
+    if (!mazeInDB) throw new NotFoundError()
+
+    if (mazeInDB.ownerId !== req.currentUser!.id) throw new NotAuthorizedError()
+
+    res.status(201).send({ path: [] })
   }
 )
 
