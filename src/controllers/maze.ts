@@ -1,5 +1,5 @@
 import express, { Response, Request } from "express"
-import { pick } from "lodash"
+import { map, pick } from "lodash"
 import { body } from "express-validator"
 
 import { prisma } from "@/services/prisma"
@@ -34,21 +34,32 @@ function isValidGridSize(gridSize: string) {
   return true
 }
 
-function isInGridRange(gridSize: string, position: string) {
+function getGridDimensions(gridSize: string) {
   const matchGrid = gridSize.match(gridSizeRegex)
-  if (!matchGrid) return false
+  if (!matchGrid) throw new Error()
 
+  const columns = Number(matchGrid[1])
+  const rows = Number(matchGrid[2])
+
+  return { columns, rows }
+}
+
+function getGridPosition(position: string) {
   const matchPosition = position.match(positionRegex)
   if (!matchPosition) return false
 
-  const gridColumns = Number(matchGrid[1])
-  const gridRows = Number(matchGrid[2])
-
   const column = matchPosition[1].charCodeAt(0) - "A".charCodeAt(0)
-  const row = Number(matchPosition[2])
+  const row = Number(matchPosition[2]) - 1
 
-  if (column > gridColumns) return false
-  if (row > gridRows || row === 0) return false
+  return { column, row }
+}
+
+function isInGridRange(gridSize: string, position: string) {
+  const { columns, rows } = getGridDimensions(gridSize)
+  const { column, row } = getGridPosition(position)
+
+  if (column > columns) return false
+  if (row > rows || row === 0) return false
 
   return true
 }
@@ -167,7 +178,8 @@ router.get(
 
     if (mazeInDB.ownerId !== req.currentUser!.id) throw new NotAuthorizedError()
 
-    res.status(201).send({ path: [] })
+    //res.status(201).send({ path: [] })
+    res.status(201).send({ path: mazeGrid })
   }
 )
 
