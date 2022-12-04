@@ -57,6 +57,10 @@ router.get(
       entrance: maze.entrance
     })
 
+    if (!route.length) {
+      throw new BadRequestError("This maze has no solution!")
+    }
+
     res.status(200).send({ path: route })
   }
 )

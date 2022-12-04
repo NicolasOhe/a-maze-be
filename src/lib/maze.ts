@@ -1,4 +1,5 @@
 import type { StepOption } from "@/controllers/maze/getMazeSolution"
+import { add } from "lodash"
 
 export const gridSizeRegex = /([0-9]+)x([0-9]+)/ // 123x456
 export const positionRegex = /(^[A-Z])(\d{1,2})/ // [A1 ... Z99]
@@ -19,22 +20,34 @@ export function findRoute(params: FindRouteParams) {
   const route: string[] = findPath(grid, entrance, stepsOption).map(
     coordToPosition
   )
+
+  // addPathToGrid(grid, route)
+  // console.log(printGrid(grid))
   return route
 }
 
 function makeGrid(gridSize: string, walls: string[]) {
   const { columns, rows } = getGridDimensions(gridSize)
 
-  const mazeGrid: number[][] = new Array(columns)
+  const grid: Grid = new Array(columns)
     .fill(0)
     .map(() => new Array(rows).fill(0))
 
   walls.forEach((wall) => {
     const { column, row } = getGridPosition(wall)
-    mazeGrid[column][row] = 1
+    grid[column][row] = 1
   })
 
-  return mazeGrid
+  return grid
+}
+
+function addPathToGrid(grid: Grid, path: string[]) {
+  path.forEach((p) => {
+    const { column, row } = getGridPosition(p)
+    grid[column][row] = 2
+  })
+
+  return grid
 }
 
 function getGridDimensions(gridSize: string) {
@@ -64,7 +77,10 @@ function printGrid(grid: Grid) {
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      string += grid[c][r] === 0 ? ". " : "X "
+      let cell = ". "
+      if (grid[c][r] === 1) cell = "X "
+      if (grid[c][r] === 2) cell = "@ "
+      string += cell
     }
     string += `\n`
   }
@@ -81,7 +97,7 @@ function isInGrid(coordinates: Coord, grid: Grid) {
 export function isInGridRange(gridSize: string, position: string) {
   const { columns, rows } = getGridDimensions(gridSize)
   const { column, row } = getGridPosition(position)
-  console.log(columns, rows, column, row)
+
   if (column > columns) return false
   if (row > rows) return false
 
