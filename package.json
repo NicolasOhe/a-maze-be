@@ -4,7 +4,7 @@
   "description": "A node backend to amaze. Coding challenge for mvpmatch.",
   "main": "./dist/main.js",
   "scripts": {
-    "dev": "npx nodemon -r tsconfig-paths/register ./src/lib/maze.ts",
+    "dev": "npx nodemon -r tsconfig-paths/register ./src/main.ts",
     "build": "tsc --build",
     "start": "node ./dist/main.js"
   },

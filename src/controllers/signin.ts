@@ -3,7 +3,7 @@ import { body } from "express-validator"
 import jwt from "jsonwebtoken"
 
 import { validateRequest } from "@/middlewares/validate-request"
-import { prisma } from "@/services/prisma"
+import { dbClient } from "@/services/prisma"
 import { BadRequestError } from "@/errors/bad-request-error"
 import { Password } from "@/lib/password"
 import { UserPayload } from "@/middlewares/current-user"
@@ -26,7 +26,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { username, password } = req.body
 
-    const user = await prisma.user.findUnique({
+    const user = await dbClient.user.findUnique({
       where: { username }
     })
 

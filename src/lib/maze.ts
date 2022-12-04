@@ -1,37 +1,41 @@
-const gridSizeRegex = /([0-9]+)x([0-9]+)/ // 123x456
-const positionRegex = /(^[A-Z])(\d{1,2})/ // [A1 ... Z99]
+import type { StepOption } from "@/controllers/maze/getMazeSolution"
 
-const entrance = "A1"
-const gridSize = "8x12"
-const walls = [
-  // "C1",
-  "G1",
-  "A2",
-  "C2",
-  "E2",
-  "G2",
-  "C3",
-  "E3",
-  "B4",
-  "C4",
-  "E4",
-  "F4",
-  "G4",
-  "B5",
-  "E5",
-  "B6",
-  "D6",
-  "E6",
-  "G6",
-  "H6",
-  "B7",
-  "D7",
-  "G7"
-  //   "B8"
-]
-const minResult = ["A1", "B1", "B2", "B3", "A3", "A4", "A5", "A6", "A7", "A8"]
+export const gridSizeRegex = /([0-9]+)x([0-9]+)/ // 123x456
+export const positionRegex = /(^[A-Z])(\d{1,2})/ // [A1 ... Z99]
 
-const end: Coord = [0, getGridDimensions(gridSize).rows - 1]
+interface FindRouteParams {
+  gridSize: string
+  walls: string[]
+  entrance: string
+  stepsOption: StepOption
+}
+
+type Coord = [number, number]
+type Grid = number[][]
+
+export function findRoute(params: FindRouteParams) {
+  const { gridSize, walls, entrance, stepsOption } = params
+  const grid = makeGrid(gridSize, walls)
+  const route: string[] = findPath(grid, entrance, stepsOption).map(
+    coordToPosition
+  )
+  return route
+}
+
+function makeGrid(gridSize: string, walls: string[]) {
+  const { columns, rows } = getGridDimensions(gridSize)
+
+  const mazeGrid: number[][] = new Array(columns)
+    .fill(0)
+    .map(() => new Array(rows).fill(0))
+
+  walls.forEach((wall) => {
+    const { column, row } = getGridPosition(wall)
+    mazeGrid[column][row] = 1
+  })
+
+  return mazeGrid
+}
 
 function getGridDimensions(gridSize: string) {
   const matchGrid = gridSize.match(gridSizeRegex)
@@ -53,17 +57,7 @@ function getGridPosition(position: string) {
   return { column, row }
 }
 
-const { columns, rows } = getGridDimensions(gridSize)
-const mazeGrid: number[][] = new Array(columns)
-  .fill(0)
-  .map(() => new Array(rows).fill(0))
-
-walls.forEach((wall) => {
-  const { column, row } = getGridPosition(wall)
-  mazeGrid[column][row] = 1
-})
-
-function printGrid(grid: number[][]) {
+function printGrid(grid: Grid) {
   const cols = grid.length
   const rows = grid[0].length
   let string = ""
@@ -77,18 +71,32 @@ function printGrid(grid: number[][]) {
   return string
 }
 
-console.log(printGrid(mazeGrid))
-
-type Coord = [number, number]
-function isInGrid(coordinates: Coord, mazeGrid: number[][]) {
+function isInGrid(coordinates: Coord, grid: Grid) {
   if (coordinates[0] < 0 || coordinates[1] < 0) return false
-  if (coordinates[0] >= mazeGrid.length || coordinates[1] >= mazeGrid[0].length)
+  if (coordinates[0] >= grid.length || coordinates[1] >= grid[0].length)
     return false
   return true
 }
-function isWall(coordinates: Coord, mazeGrid: number[][]) {
-  return mazeGrid[coordinates[0]][coordinates[1]] === 1
+
+export function isInGridRange(gridSize: string, position: string) {
+  const { columns, rows } = getGridDimensions(gridSize)
+  const { column, row } = getGridPosition(position)
+
+  if (column > columns) return false
+  if (row > rows || row === 0) return false
+
+  return true
 }
+
+// To do
+export function isAtEdge(gridSize: string, position: string) {
+  return true
+}
+
+function isWall(coordinates: Coord, grid: Grid) {
+  return grid[coordinates[0]][coordinates[1]] === 1
+}
+
 function isVisited(coordinates: Coord, steps: Coord[]) {
   return steps.some((step) => hasSameCoordinates(step, coordinates))
 }
@@ -97,80 +105,52 @@ function hasSameCoordinates(coord1: Coord, coord2: Coord) {
   return coord1[0] === coord2[0] && coord1[1] === coord2[1]
 }
 
-function findPossiblePaths(mazeGrid: number[][], entrance: string) {
-  let isDone = false
+function findPath(mazeGrid: Grid, entrance: string, stepsOptions: StepOption) {
   let currentPosition = getGridPosition(entrance)
   const startCoord: Coord = [currentPosition.column, currentPosition.row]
-  const paths = [{ done: false, valid: false, steps: [startCoord] }]
 
-  while (!isDone) {
-    for (let path of paths) {
-      if (path.done) continue
+  const exits: [Coord, Coord] = [
+    [0, mazeGrid[0].length - 1],
+    [mazeGrid.length - 1, mazeGrid[0].length - 1]
+  ]
+  let winnerPath: Coord[] = []
 
-      const currentStep = path.steps[path.steps.length - 1]
+  const visit = (steps: Coord[]) => {
+    const currentStep = steps[steps.length - 1]
 
-      if (hasSameCoordinates(currentStep, end)) {
-        path.done = true
-        continue
-      }
-      const [col, row] = currentStep
-
-      const top: Coord = [col, row - 1]
-      const left: Coord = [col + 1, row]
-      const bottom: Coord = [col, row + 1]
-      const right: Coord = [col - 1, row]
-
-      const matches: Coord[] = []
-
-      ;[top, left, bottom, right].forEach((pos) => {
-        if (
-          isInGrid(pos, mazeGrid) &&
-          !isWall(pos, mazeGrid) &&
-          !isVisited(pos, path.steps)
-        ) {
-          matches.push(pos)
+    if (exits.some((exit) => hasSameCoordinates(currentStep, exit))) {
+      if (stepsOptions === "min") {
+        if (winnerPath.length > steps.length || winnerPath.length === 0) {
+          winnerPath = steps
         }
-      })
-
-      if (matches.length === 0) {
-        path.done = true
-        continue
-      }
-
-      if (matches.length === 1) {
-        path.steps.push(matches.pop()!)
-        continue
-      }
-
-      if (matches.length > 1) {
-        const commonSteps = [...path.steps]
-        path.steps.push(matches.pop()!)
-        matches.forEach((pos) => {
-          paths.push({
-            done: false,
-            valid: false,
-            steps: [...commonSteps, pos]
-          })
-        })
+      } else if (stepsOptions === "max") {
+        if (winnerPath.length < steps.length) {
+          winnerPath = steps
+        }
       }
     }
-    if (paths.every((path) => path.done)) isDone = true
+
+    const [col, row] = currentStep
+
+    const top: Coord = [col, row - 1]
+    const left: Coord = [col + 1, row]
+    const bottom: Coord = [col, row + 1]
+    const right: Coord = [col - 1, row]
+
+    ;[top, left, bottom, right].forEach((pos) => {
+      if (
+        isInGrid(pos, mazeGrid) &&
+        !isWall(pos, mazeGrid) &&
+        !isVisited(pos, steps)
+      ) {
+        visit([...steps, pos])
+      }
+    })
   }
+  visit([startCoord])
 
-  return paths.map((path) => path.steps)
+  return winnerPath
 }
-
-const start = performance.now()
-const paths: Coord[][] = findPossiblePaths(mazeGrid, entrance)
-console.log("possible paths", paths.length)
-
-const winningPaths = paths
-  .filter((path) => path.some((step) => hasSameCoordinates(step, end)))
-  .map((path) => path.map(coordToPosition))
-console.log("winningPaths", winningPaths.length)
-console.log("winningPaths", winningPaths)
-const elapsed = performance.now() - start
-console.log("time elapsed", elapsed)
 
 function coordToPosition(coord: Coord) {
   const columnAsLetter = String.fromCharCode(coord[0] + "A".charCodeAt(0))

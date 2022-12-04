@@ -8,7 +8,9 @@ import { signupRouter } from "@/controllers/signup"
 import { NotFoundError } from "@/errors/not-found-error"
 import { errorHandler } from "@/middlewares/error-handler"
 import { loginRouter } from "@/controllers/signin"
-import { newMazeRouter } from "./controllers/maze"
+import { getMazeRouter } from "@/controllers/maze/getMaze"
+import { postMazeRouter } from "@/controllers/maze/postMaze"
+import { getMazeSolutionRouter } from "@/controllers/maze/getMazeSolution"
 
 dotenv.config()
 
@@ -18,10 +20,14 @@ app.use(cors())
 app.use(express.json() as RequestHandler)
 app.use(cookieSession({ secure: false, signed: false }))
 
-// Routes
+// Auth routes
 app.use(signupRouter)
 app.use(loginRouter)
-app.use(newMazeRouter)
+
+// Maze routes
+app.use(getMazeRouter)
+app.use(postMazeRouter)
+app.use(getMazeSolutionRouter)
 
 // Errors
 app.all("*", () => {
@@ -29,5 +35,5 @@ app.all("*", () => {
 })
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 8080
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`))
+const port = process.env.PORT || 8080
+app.listen(port, () => console.log(`Listening on port ${port}`))
