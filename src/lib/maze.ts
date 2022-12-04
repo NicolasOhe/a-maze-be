@@ -81,9 +81,9 @@ function isInGrid(coordinates: Coord, grid: Grid) {
 export function isInGridRange(gridSize: string, position: string) {
   const { columns, rows } = getGridDimensions(gridSize)
   const { column, row } = getGridPosition(position)
-
+  console.log(columns, rows, column, row)
   if (column > columns) return false
-  if (row > rows || row === 0) return false
+  if (row > rows) return false
 
   return true
 }
