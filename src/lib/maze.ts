@@ -1,8 +1,11 @@
 import type { StepOption } from "@/controllers/maze/getMazeSolution"
-import { add } from "lodash"
+import { BadRequestError } from "@/errors/bad-request-error"
+import _ from "lodash"
 
 export const gridSizeRegex = /([0-9]+)x([0-9]+)/ // 123x456
 export const positionRegex = /(^[A-Z])(\d{1,2})/ // [A1 ... Z99]
+
+const MAXIMUM_ITERATIONS = 1000000
 
 interface FindRouteParams {
   gridSize: string
@@ -14,21 +17,45 @@ interface FindRouteParams {
 type Coord = [number, number]
 type Grid = number[][]
 
-export function findRoute(params: FindRouteParams) {
+export function findRoutes(params: FindRouteParams) {
   const { gridSize, walls, entrance, stepsOption } = params
-  const grid = makeGrid(gridSize, walls)
-  const route: string[] = findPath(grid, entrance, stepsOption).map(
-    coordToPosition
-  )
 
-  // addPathToGrid(grid, route)
-  // console.log(printGrid(grid))
-  return route
+  const { columns, rows } = getGridDimensions(gridSize)
+  const grid = makeGrid(columns, rows, walls)
+
+  const bottomLeft: Coord = [0, rows - 1]
+  const bottomRight: Coord = [columns - 1, rows - 1]
+  const exits: [Coord, Coord] = [bottomLeft, bottomRight]
+  const entrancePosition = getGridPosition(entrance)
+  const entranceCoord: Coord = [entrancePosition.column, entrancePosition.row]
+
+  const routeToBottomLeft: string[] = findPath(
+    grid,
+    entranceCoord,
+    exits[0],
+    stepsOption
+  ).map(coordToPosition)
+
+  const routeToBottomRight: string[] = findPath(
+    grid,
+    entranceCoord,
+    exits[1],
+    stepsOption
+  ).map(coordToPosition)
+
+  let gridPath = _.cloneDeep(grid)
+  addPathToGrid(gridPath, routeToBottomLeft)
+  console.log("routeToBottomLeft:")
+  console.log(printGrid(gridPath))
+
+  gridPath = _.cloneDeep(grid)
+  addPathToGrid(gridPath, routeToBottomRight)
+  console.log("routeToBottomRight:")
+  console.log(printGrid(gridPath))
+  return { routeToBottomLeft, routeToBottomRight }
 }
 
-function makeGrid(gridSize: string, walls: string[]) {
-  const { columns, rows } = getGridDimensions(gridSize)
-
+function makeGrid(columns: number, rows: number, walls: string[]) {
   const grid: Grid = new Array(columns)
     .fill(0)
     .map(() => new Array(rows).fill(0))
@@ -121,20 +148,23 @@ function hasSameCoordinates(coord1: Coord, coord2: Coord) {
   return coord1[0] === coord2[0] && coord1[1] === coord2[1]
 }
 
-function findPath(mazeGrid: Grid, entrance: string, stepsOptions: StepOption) {
-  let currentPosition = getGridPosition(entrance)
-  const startCoord: Coord = [currentPosition.column, currentPosition.row]
-
-  const exits: [Coord, Coord] = [
-    [0, mazeGrid[0].length - 1],
-    [mazeGrid.length - 1, mazeGrid[0].length - 1]
-  ]
+function findPath(
+  mazeGrid: Grid,
+  entrance: Coord,
+  exit: Coord,
+  stepsOptions: StepOption
+) {
   let winnerPath: Coord[] = []
+  let counter = 0
 
   const visit = (steps: Coord[]) => {
+    counter++
+    if (counter > MAXIMUM_ITERATIONS)
+      throw new BadRequestError("Maze complexity exceeds computation capacity.")
+
     const currentStep = steps[steps.length - 1]
 
-    if (exits.some((exit) => hasSameCoordinates(currentStep, exit))) {
+    if (hasSameCoordinates(currentStep, exit)) {
       if (stepsOptions === "min") {
         if (winnerPath.length > steps.length || winnerPath.length === 0) {
           winnerPath = steps
@@ -163,7 +193,7 @@ function findPath(mazeGrid: Grid, entrance: string, stepsOptions: StepOption) {
       }
     })
   }
-  visit([startCoord])
+  visit([entrance])
 
   return winnerPath
 }

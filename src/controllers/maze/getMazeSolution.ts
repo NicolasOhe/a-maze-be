@@ -7,7 +7,7 @@ import { validateRequest } from "@/middlewares/validate-request"
 import { BadRequestError } from "@/errors/bad-request-error"
 import { NotFoundError } from "@/errors/not-found-error"
 import { NotAuthorizedError } from "@/errors/not-authorized-error"
-import { findRoute } from "@/lib/maze"
+import { findRoutes } from "@/lib/maze"
 import { query } from "express-validator"
 
 const router = express.Router()
@@ -50,16 +50,24 @@ router.get(
 
     if (maze.ownerId !== req.currentUser!.id) throw new NotAuthorizedError()
 
-    const route = findRoute({
+    const { routeToBottomLeft, routeToBottomRight } = findRoutes({
       gridSize: maze.gridSize,
       walls: maze.walls.split(","),
       stepsOption: steps as StepOption,
       entrance: maze.entrance
     })
 
-    if (!route.length) {
+    if (!routeToBottomLeft.length && !routeToBottomRight.length) {
       throw new BadRequestError("This maze has no solution!")
     }
+    if (routeToBottomLeft.length && routeToBottomRight.length) {
+      throw new BadRequestError(
+        "This maze has two exits! This is not permitted."
+      )
+    }
+    const route = routeToBottomLeft.length
+      ? routeToBottomLeft
+      : routeToBottomRight
 
     res.status(200).send({ path: route })
   }
