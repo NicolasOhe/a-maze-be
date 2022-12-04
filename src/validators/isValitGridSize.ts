@@ -1,7 +1,7 @@
 import { gridSizeRegex } from "@/lib/maze"
 
-const MAX_COLUMNS = 10
-const MAX_ROWS = 10
+export const MAX_COLUMNS = 10
+export const MAX_ROWS = 10
 
 export function isValidGridSize(gridSize: string) {
   const matchGrid = gridSize.match(gridSizeRegex)

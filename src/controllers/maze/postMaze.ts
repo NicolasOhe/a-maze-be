@@ -7,7 +7,11 @@ import { currentUser } from "@/middlewares/current-user"
 import { requireAuth } from "@/middlewares/require-auth"
 import { validateRequest } from "@/middlewares/validate-request"
 import { isAtEdge, isInGridRange } from "@/lib/maze"
-import { isValidGridSize } from "@/validators/isValitGridSize"
+import {
+  isValidGridSize,
+  MAX_COLUMNS,
+  MAX_ROWS
+} from "@/validators/isValitGridSize"
 import { isValidPosition } from "@/validators/isValidPosition"
 
 const router = express.Router()
@@ -20,7 +24,9 @@ router.post(
     body("gridSize")
       .isString()
       .custom((gridSize) => isValidGridSize(gridSize))
-      .withMessage("Invalid gridSize."),
+      .withMessage(
+        `Invalid gridSize. Its size cannot exceed ${MAX_COLUMNS}x${MAX_ROWS}`
+      ),
     body("walls")
       .isArray()
       .custom((walls, { req }) => {
@@ -29,7 +35,7 @@ router.post(
             isValidPosition(wall) && isInGridRange(req.body.gridSize, wall)
         )
       })
-      .withMessage("Invalid walls format"),
+      .withMessage("Invalid walls format. Is each wall within the grid?"),
     body("entrance")
       .isString()
       .custom(
