@@ -35,7 +35,7 @@ router.get(
       })
     }
 
-    res.status(201).send(mazes)
+    res.status(200).send(mazes)
   }
 )
 

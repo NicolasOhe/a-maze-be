@@ -1,6 +1,5 @@
 import express, { RequestHandler } from "express"
 import "express-async-errors"
-import dotenv from "dotenv"
 import cors from "cors"
 import cookieSession from "cookie-session"
 
@@ -12,9 +11,7 @@ import { getMazeRouter } from "@/controllers/maze/getMaze"
 import { postMazeRouter } from "@/controllers/maze/postMaze"
 import { getMazeSolutionRouter } from "@/controllers/maze/getMazeSolution"
 
-dotenv.config()
-
-const app = express()
+export const app = express()
 
 app.use(cors())
 app.use(express.json() as RequestHandler)
@@ -34,6 +31,3 @@ app.all("*", () => {
   throw new NotFoundError()
 })
 app.use(errorHandler)
-
-const port = process.env.PORT || 8080
-app.listen(port, () => console.log(`Listening on port ${port}`))

@@ -47,7 +47,7 @@ router.post(
     })
     req.session = { accessToken }
 
-    res.status(201).send(req.session)
+    res.status(200).send(req.session)
   }
 )
 
