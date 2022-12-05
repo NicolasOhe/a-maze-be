@@ -43,7 +43,7 @@ router.post(
     const payload: UserPayload = { id: user.id, username: user.username }
 
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
-      expiresIn: "100m"
+      expiresIn: "30m"
     })
     req.session = { accessToken }
 
