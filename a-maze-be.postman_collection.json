@@ -19,7 +19,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\": \"teddddst\", \"password\":\"sdfgsfg\"}",
+					"raw": "{\"username\": \"test\", \"password\":\"sdfgsfg\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -52,7 +52,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\": \"teddddst\", \"password\":\"sdfgsfg\"}",
+					"raw": "{\"username\": \"test\", \"password\":\"sdfgsfg\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -60,12 +60,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{server}}/login",
+					"raw": "{{server}}/user",
 					"host": [
 						"{{server}}"
 					],
 					"path": [
-						"login"
+						"user"
 					]
 				}
 			},
@@ -88,7 +88,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\": \"teddddst\", \"password\":\"sdfgsfg\"}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -124,7 +124,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\": \"teddddst\", \"password\":\"sdfgsfg\"}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -208,7 +208,7 @@
 	"variable": [
 		{
 			"key": "server",
-			"value": "http://localhost:2000"
+			"value": "https://yhmmmuu6hb.eu-west-1.awsapprunner.com"
 		}
 	]
 }

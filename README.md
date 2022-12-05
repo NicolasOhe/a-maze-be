@@ -4,6 +4,8 @@ A node.js express server written in TypeScript and using prisma as ORM. Communic
 
 This application is the result of a coding challenge to be submitted within one week.
 
+A postman collection to test the endpoints is available at the root of the project.
+
 Main features:
 
 - user registration
