@@ -18,7 +18,12 @@ const app = express()
 
 app.use(cors())
 app.use(express.json() as RequestHandler)
-app.use(cookieSession({ secure: false, signed: false }))
+app.use(
+  cookieSession({
+    secure: process.env.ENVIRONMENT === "dev" ? false : true,
+    signed: false
+  })
+)
 
 // Auth routes
 app.use(signupRouter)
